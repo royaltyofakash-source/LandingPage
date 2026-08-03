@@ -93,8 +93,7 @@ export function BeforeAfterSlider() {
           }}
           className="relative aspect-[3/4] w-full touch-none overflow-hidden rounded-[1.6rem] bg-ink select-none transition-transform duration-500 ease-out group-hover:scale-[1.008]"
           style={{
-            transform:
-              "rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))",
+            transform: "rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))",
           }}
         >
           <img
@@ -122,17 +121,13 @@ export function BeforeAfterSlider() {
             <p className="font-display text-xl font-extrabold tracking-tight">
               {content.beforeLabel.split(" · ")[0]}
             </p>
-            <p className="text-xs text-ink-foreground/70">
-              {content.beforeLabel.split(" · ")[1]}
-            </p>
+            <p className="text-xs text-ink-foreground/70">{content.beforeLabel.split(" · ")[1]}</p>
           </div>
           <div className="pointer-events-none absolute right-5 bottom-5 text-right text-ink-foreground">
             <p className="font-display text-xl font-extrabold tracking-tight">
               {content.afterLabel.split(" · ")[0]}
             </p>
-            <p className="text-xs text-ink-foreground/70">
-              {content.afterLabel.split(" · ")[1]}
-            </p>
+            <p className="text-xs text-ink-foreground/70">{content.afterLabel.split(" · ")[1]}</p>
           </div>
 
           <div

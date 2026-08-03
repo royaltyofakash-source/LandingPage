@@ -16,7 +16,7 @@ import { ChartTooltip, chartAxis, chartGrid } from "@/components/dashboard/chart
 import { formatCurrency, formatDateRange, isoDate } from "@/lib/dashboard-metrics";
 
 function ChartSkeleton() {
-  return <div className="h-full min-h-[260px] w-full animate-pulse rounded-lg bg-muted/60" />;
+  return <div className="h-full min-h-40 w-full animate-pulse rounded-lg bg-muted/60" />;
 }
 
 export function DashboardContent() {
@@ -39,7 +39,7 @@ export function DashboardContent() {
 
   return (
     <>
-      <div className="mt-6 grid gap-6 lg:grid-cols-7">
+      <div className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 lg:grid-cols-7">
         <Reveal delay={500} className="lg:col-span-4">
           <Panel
             title="Lead Flow"
@@ -48,14 +48,14 @@ export function DashboardContent() {
                 ? "Loading lead history…"
                 : formatDateRange(metrics.firstLeadDate, metrics.lastLeadDate)
             }
-            bodyClassName="min-h-[280px]"
+            bodyClassName="h-56 sm:h-70"
           >
             {isLoading ? (
               <ChartSkeleton />
             ) : metrics.leadsByDay.length === 0 ? (
               <PanelEmpty message="No dated leads in the sheet." />
             ) : (
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={metrics.leadsByDay}
                   margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
@@ -147,7 +147,7 @@ export function DashboardContent() {
       </div>
 
       {/* Stretches to the bottom of the viewport so the page never ends short */}
-      <div className="mt-6 grid flex-1 gap-6 lg:grid-cols-3">
+      <div className="mt-4 grid flex-1 gap-4 sm:mt-6 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
         <Reveal delay={700}>
           <Panel title="Conversion Funnel" description="Each stage as recorded in the sheet">
             {isLoading ? (

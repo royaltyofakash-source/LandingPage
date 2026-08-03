@@ -41,7 +41,7 @@ export function OverviewCards() {
   ];
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
       {cards.map((card) => (
         <Reveal key={card.title} delay={card.delay}>
           <StatCard

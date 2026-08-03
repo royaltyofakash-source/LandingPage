@@ -42,13 +42,13 @@ function SheetPage() {
   };
 
   return (
-    <div className="flex w-full flex-1 flex-col p-6 sm:p-8">
+    <div className="flex w-full flex-1 flex-col p-4 sm:p-6 lg:p-8">
       {/* Header Area */}
-      <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div className="mb-6 flex flex-col justify-between gap-4 sm:mb-8 sm:flex-row sm:items-end">
         <div className="space-y-2">
           <Reveal delay={0}>
-            <h2 className="text-3xl font-display font-bold tracking-tight text-foreground flex items-center gap-3">
-              <Table2 className="h-8 w-8 text-primary" />
+            <h2 className="flex items-center gap-2 font-display text-2xl font-bold tracking-tight text-foreground sm:gap-3 sm:text-3xl">
+              <Table2 className="h-7 w-7 shrink-0 text-primary sm:h-8 sm:w-8" />
               Spreadsheet Data
             </h2>
           </Reveal>
@@ -88,14 +88,14 @@ function SheetPage() {
         ) : (
           <>
             <div className="flex-1 overflow-auto w-full">
-              <table className="w-full h-full text-sm sm:text-base text-left border-collapse">
+              <table className="h-full w-full border-collapse text-left text-sm">
                 <thead className="text-xs text-muted-foreground uppercase bg-muted/80 whitespace-nowrap sticky top-0 z-30 shadow-sm backdrop-blur-sm h-12">
                   <tr>
-                    <th className="px-6 py-4 font-semibold sticky left-0 z-40 bg-muted/90 shadow-[1px_0_0_0_rgba(0,0,0,0.1)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.1)]">
+                    <th className="sticky left-0 z-40 px-4 py-4 font-semibold sm:px-6 bg-muted/90 shadow-[1px_0_0_0_rgba(0,0,0,0.1)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.1)]">
                       #
                     </th>
                     {columns.map((column, index) => (
-                      <th key={index} className="px-6 py-5 sm:py-6 font-semibold">
+                      <th key={index} className="px-4 py-4 font-semibold sm:px-6">
                         {column}
                       </th>
                     ))}
@@ -106,13 +106,13 @@ function SheetPage() {
                     const absoluteIndex = startIndex + index + 1;
                     return (
                       <tr key={absoluteIndex} className="hover:bg-accent/50 transition-colors">
-                        <td className="px-6 py-5 sm:py-6 whitespace-nowrap text-muted-foreground sticky left-0 z-10 bg-card/90 backdrop-blur shadow-[1px_0_0_0_rgba(0,0,0,0.05)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.05)] font-medium">
+                        <td className="sticky left-0 z-10 whitespace-nowrap px-4 py-4 text-muted-foreground sm:px-6 bg-card/90 backdrop-blur shadow-[1px_0_0_0_rgba(0,0,0,0.05)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.05)] font-medium">
                           {absoluteIndex}
                         </td>
                         {columns.map((column, colIndex) => (
                           <td
                             key={colIndex}
-                            className="px-6 py-5 sm:py-6 whitespace-nowrap text-foreground/90 max-w-[400px] truncate"
+                            className="max-w-75 truncate whitespace-nowrap px-4 py-4 text-foreground/90 sm:px-6"
                             title={String(row[column as keyof typeof row])}
                           >
                             {row[column as keyof typeof row] || (
@@ -138,8 +138,8 @@ function SheetPage() {
             </div>
 
             {/* Pagination Controls */}
-            <div className="p-3 border-t border-border bg-muted/30 flex flex-wrap justify-between items-center gap-4 shrink-0">
-              <div className="text-xs text-muted-foreground whitespace-nowrap flex-1">
+            <div className="flex shrink-0 flex-col items-center justify-between gap-3 border-t border-border bg-muted/30 p-3 sm:flex-row sm:gap-4">
+              <div className="whitespace-nowrap text-center text-xs text-muted-foreground sm:flex-1 sm:text-left">
                 Showing{" "}
                 <span className="font-medium text-foreground">
                   {filteredData.length > 0 ? startIndex + 1 : 0}
@@ -152,7 +152,7 @@ function SheetPage() {
                 records
               </div>
 
-              <div className="flex items-center justify-center gap-2 flex-1">
+              <div className="flex items-center justify-center gap-2 sm:flex-1">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1 || totalPages === 0}
@@ -180,7 +180,7 @@ function SheetPage() {
                 </button>
               </div>
 
-              <div className="flex-1 flex justify-end">
+              <div className="flex justify-end sm:flex-1">
                 <a
                   href={import.meta.env["VITE_SPREADSHEET_DATA"]}
                   target="_blank"

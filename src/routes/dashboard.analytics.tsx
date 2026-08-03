@@ -49,11 +49,11 @@ function AnalyticsPage() {
   const totalGraded = metrics.gradeDistribution.reduce((acc, g) => acc + g.value, 0);
 
   return (
-    <div className="flex w-full flex-1 flex-col p-6 sm:p-8">
-      <div className="space-y-2 mb-8">
+    <div className="flex w-full flex-1 flex-col p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 space-y-2 sm:mb-8">
         <Reveal delay={0}>
-          <h2 className="text-3xl font-display font-bold tracking-tight text-foreground flex items-center gap-3">
-            <BarChart3 className="h-8 w-8 text-primary" />
+          <h2 className="flex items-center gap-2 font-display text-2xl font-bold tracking-tight text-foreground sm:gap-3 sm:text-3xl">
+            <BarChart3 className="h-7 w-7 shrink-0 text-primary sm:h-8 sm:w-8" />
             Analytics
           </h2>
         </Reveal>
@@ -68,7 +68,7 @@ function AnalyticsPage() {
         <DataError message={(error as Error).message} />
       ) : (
         <>
-          <div className="mb-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-4 grid gap-4 sm:mb-6 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
             {cards.map((card, i) => (
               <Reveal key={card.title} delay={200 + i * 100}>
                 <StatCard {...card} isLoading={isLoading} />
@@ -76,18 +76,19 @@ function AnalyticsPage() {
             ))}
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
             <Reveal delay={500} className="lg:col-span-2">
               <Panel
                 title="Revenue Over Time"
                 description="Cash collected per month, dated by deal creation in Close"
+                bodyClassName="h-60 sm:h-75"
               >
                 {isLoading ? (
-                  <div className="h-[300px] w-full animate-pulse rounded-lg bg-muted/60" />
+                  <div className="h-60 w-full animate-pulse rounded-lg bg-muted/60 sm:h-75" />
                 ) : metrics.revenueByMonth.length === 0 ? (
                   <PanelEmpty message="No cash collected recorded in the sheet." />
                 ) : (
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={metrics.revenueByMonth}
                       margin={{ top: 8, right: 8, left: -8, bottom: 0 }}
@@ -123,7 +124,7 @@ function AnalyticsPage() {
             <Reveal delay={600}>
               <Panel title="Program Mix" description="Revenue split by program purchased">
                 {isLoading ? (
-                  <div className="h-[300px] w-full animate-pulse rounded-lg bg-muted/60" />
+                  <div className="h-60 w-full animate-pulse rounded-lg bg-muted/60" />
                 ) : metrics.programTypes.length === 0 ? (
                   <PanelEmpty message="No program types recorded." />
                 ) : (
@@ -178,11 +179,11 @@ function AnalyticsPage() {
             </Reveal>
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-3">
+          <div className="mt-4 grid gap-4 sm:mt-6 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
             <Reveal delay={700}>
               <Panel title="Traffic Sources" description="Where every lead came from (UTM source)">
                 {isLoading ? (
-                  <div className="h-[200px] w-full animate-pulse rounded-lg bg-muted/60" />
+                  <div className="h-50 w-full animate-pulse rounded-lg bg-muted/60" />
                 ) : (
                   <BreakdownList items={metrics.trafficSources} total={metrics.totalLeads} />
                 )}
@@ -192,7 +193,7 @@ function AnalyticsPage() {
             <Reveal delay={800}>
               <Panel title="Top Ad Placements" description="Leads by UTM medium">
                 {isLoading ? (
-                  <div className="h-[200px] w-full animate-pulse rounded-lg bg-muted/60" />
+                  <div className="h-50 w-full animate-pulse rounded-lg bg-muted/60" />
                 ) : (
                   <BreakdownList
                     items={metrics.placements}
@@ -205,7 +206,7 @@ function AnalyticsPage() {
             <Reveal delay={900}>
               <Panel title="Pipeline Stages" description="Opportunity stages in Close CRM">
                 {isLoading ? (
-                  <div className="h-[200px] w-full animate-pulse rounded-lg bg-muted/60" />
+                  <div className="h-50 w-full animate-pulse rounded-lg bg-muted/60" />
                 ) : (
                   <BreakdownList
                     items={metrics.pipelineStages}
@@ -228,7 +229,7 @@ function AnalyticsPage() {
               }
             >
               {isLoading ? (
-                <div className="h-[120px] w-full animate-pulse rounded-lg bg-muted/60" />
+                <div className="h-30 w-full animate-pulse rounded-lg bg-muted/60" />
               ) : metrics.gradeDistribution.length === 0 ? (
                 <PanelEmpty message="No graded leads in the sheet." />
               ) : (

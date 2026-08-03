@@ -13,10 +13,10 @@ export const Route = createFileRoute("/dashboard/")({
 
 function DashboardPage() {
   return (
-    <div className="flex w-full flex-1 flex-col p-6 sm:p-8">
-      <div className="space-y-2 mb-8">
+    <div className="flex w-full flex-1 flex-col p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 space-y-2 sm:mb-8">
         <Reveal delay={0}>
-          <h2 className="text-3xl font-display font-bold tracking-tight text-foreground">
+          <h2 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             Welcome back, Maria Toscano
           </h2>
         </Reveal>

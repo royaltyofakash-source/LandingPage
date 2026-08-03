@@ -65,13 +65,13 @@ function StudentsPage() {
   };
 
   return (
-    <div className="flex w-full flex-1 flex-col p-6 sm:p-8">
+    <div className="flex w-full flex-1 flex-col p-4 sm:p-6 lg:p-8">
       {/* Header Area */}
-      <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div className="mb-6 flex flex-col justify-between gap-4 sm:mb-8 sm:flex-row sm:items-end">
         <div className="space-y-2">
           <Reveal delay={0}>
-            <h2 className="text-3xl font-display font-bold tracking-tight text-foreground flex items-center gap-3">
-              <Users className="h-8 w-8 text-primary" />
+            <h2 className="flex items-center gap-2 font-display text-2xl font-bold tracking-tight text-foreground sm:gap-3 sm:text-3xl">
+              <Users className="h-7 w-7 shrink-0 text-primary sm:h-8 sm:w-8" />
               Student Directory
             </h2>
           </Reveal>
@@ -114,15 +114,15 @@ function StudentsPage() {
         ) : (
           <>
             <div className="flex-1 overflow-auto w-full">
-              <table className="w-full text-sm text-left border-collapse">
+              <table className="w-full min-w-215 border-collapse text-left text-sm">
                 <thead className="text-xs font-semibold text-muted-foreground uppercase bg-muted/80 whitespace-nowrap sticky top-0 z-30 shadow-sm backdrop-blur-sm">
                   <tr>
-                    <th className="px-6 py-4">Student</th>
-                    <th className="px-6 py-4">Captured</th>
-                    <th className="px-6 py-4">Grade</th>
-                    <th className="px-6 py-4">Lead Score</th>
-                    <th className="px-6 py-4">CRM Stage</th>
-                    <th className="px-6 py-4 text-right">Cash Collected</th>
+                    <th className="px-4 py-4 sm:px-6">Student</th>
+                    <th className="px-4 py-4 sm:px-6">Captured</th>
+                    <th className="px-4 py-4 sm:px-6">Grade</th>
+                    <th className="px-4 py-4 sm:px-6">Lead Score</th>
+                    <th className="px-4 py-4 sm:px-6">CRM Stage</th>
+                    <th className="px-4 py-4 text-right sm:px-6">Cash Collected</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -131,7 +131,7 @@ function StudentsPage() {
                       key={`${student.email}-${startIndex + i}`}
                       className="hover:bg-accent/50 transition-colors"
                     >
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4 sm:px-6">
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
                             {student.name
@@ -151,10 +151,10 @@ function StudentsPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
+                      <td className="whitespace-nowrap px-4 py-4 text-muted-foreground sm:px-6">
                         {student.captured}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4 sm:px-6">
                         {student.grade ? (
                           <span
                             className={`px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -167,7 +167,7 @@ function StudentsPage() {
                           <span className="text-muted-foreground/40">—</span>
                         )}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4 sm:px-6">
                         {student.score === null ? (
                           <span className="text-muted-foreground/40">Not scored</span>
                         ) : (
@@ -186,7 +186,7 @@ function StudentsPage() {
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4 sm:px-6">
                         {student.closed ? (
                           <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600">
                             Closed
@@ -206,7 +206,7 @@ function StudentsPage() {
                           <span className="text-xs text-muted-foreground/50">Not in CRM</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                      <td className="whitespace-nowrap px-4 py-4 text-right sm:px-6">
                         {student.cash > 0 ? (
                           <span className="font-medium text-emerald-600">
                             {formatCurrency(student.cash, 2)}
@@ -229,8 +229,8 @@ function StudentsPage() {
             </div>
 
             {/* Pagination Controls */}
-            <div className="p-3 border-t border-border bg-muted/30 flex flex-wrap justify-between items-center gap-4 shrink-0">
-              <div className="text-xs text-muted-foreground whitespace-nowrap flex-1">
+            <div className="flex shrink-0 flex-col items-center justify-between gap-3 border-t border-border bg-muted/30 p-3 sm:flex-row sm:gap-4">
+              <div className="whitespace-nowrap text-center text-xs text-muted-foreground sm:flex-1 sm:text-left">
                 Showing{" "}
                 <span className="font-medium text-foreground">
                   {filteredStudents.length > 0 ? startIndex + 1 : 0}
@@ -243,7 +243,7 @@ function StudentsPage() {
                 students
               </div>
 
-              <div className="flex items-center justify-center gap-2 flex-1">
+              <div className="flex items-center justify-center gap-2 sm:flex-1">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1 || totalPages === 0}
@@ -271,7 +271,7 @@ function StudentsPage() {
                 </button>
               </div>
 
-              <div className="flex-1 flex justify-end" />
+              <div className="flex justify-end sm:flex-1" />
             </div>
           </>
         )}

@@ -23,11 +23,11 @@ function SettingsPage() {
   ];
 
   return (
-    <div className="flex w-full flex-1 flex-col p-6 sm:p-8">
-      <div className="space-y-2 mb-8">
+    <div className="flex w-full flex-1 flex-col p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 space-y-2 sm:mb-8">
         <Reveal delay={0}>
-          <h2 className="text-3xl font-display font-bold tracking-tight text-foreground flex items-center gap-3">
-            <Settings className="h-8 w-8 text-primary" />
+          <h2 className="flex items-center gap-2 font-display text-2xl font-bold tracking-tight text-foreground sm:gap-3 sm:text-3xl">
+            <Settings className="h-7 w-7 shrink-0 text-primary sm:h-8 sm:w-8" />
             Platform Settings
           </h2>
         </Reveal>
@@ -38,15 +38,15 @@ function SettingsPage() {
         </Reveal>
       </div>
 
-      <div className="flex flex-1 flex-col gap-8 md:flex-row">
-        {/* Settings Navigation */}
-        <Reveal delay={200} className="w-full md:w-64 shrink-0">
-          <nav className="space-y-1">
+      <div className="flex flex-1 flex-col gap-6 md:flex-row md:gap-8">
+        {/* Settings Navigation — scrollable tab strip on mobile, sidebar from md up */}
+        <Reveal delay={200} className="w-full shrink-0 md:w-64">
+          <nav className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-2 md:mx-0 md:flex-col md:space-y-1 md:overflow-visible md:px-0 md:pb-0">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-4 py-3 text-sm font-medium transition-colors md:w-full md:gap-3 ${
                   activeTab === tab.id
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -60,8 +60,8 @@ function SettingsPage() {
         </Reveal>
 
         {/* Settings Content */}
-        <Reveal delay={300} className="flex flex-1 flex-col">
-          <div className="flex flex-1 flex-col rounded-xl border border-border bg-card/50 p-6 shadow-sm backdrop-blur-sm sm:p-8">
+        <Reveal delay={300} className="flex min-w-0 flex-1 flex-col">
+          <div className="flex flex-1 flex-col rounded-xl border border-border bg-card/50 p-4 shadow-sm backdrop-blur-sm sm:p-6 lg:p-8">
             {activeTab === "profile" && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <div>

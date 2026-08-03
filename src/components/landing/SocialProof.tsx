@@ -26,13 +26,7 @@ function useCountUp(target: number, run: boolean, duration = 1400) {
   return value;
 }
 
-function StatCard({
-  stat,
-  run,
-}: {
-  stat: (typeof content.stats)[number];
-  run: boolean;
-}) {
+function StatCard({ stat, run }: { stat: (typeof content.stats)[number]; run: boolean }) {
   const value = useCountUp(stat.value, run);
   return (
     <div className="flex-1 px-6 py-7 text-center">

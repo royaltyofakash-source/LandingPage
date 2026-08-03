@@ -8,8 +8,7 @@ export function HeroHeadline() {
         {content.headline[0]}
       </Reveal>
       <Reveal as="span" delay={200} className="block">
-        {content.headline[1]}{" "}
-        <span className="coral-shimmer">{content.headlineAccent}</span>
+        {content.headline[1]} <span className="coral-shimmer">{content.headlineAccent}</span>
       </Reveal>
     </h1>
   );

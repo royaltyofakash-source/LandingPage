@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { useEffect, useState, type ReactNode } from "react";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Users,
@@ -8,111 +8,158 @@ import {
   Activity,
   BarChart3,
   Table2,
+  Menu,
+  X,
 } from "lucide-react";
 
+const NAV_SECTIONS = [
+  {
+    heading: "Main Menu",
+    links: [
+      { to: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
+      { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+      { to: "/dashboard/students", label: "Students", icon: Users },
+      { to: "/dashboard/sheet", label: "Sheet", icon: Table2 },
+    ],
+  },
+  {
+    heading: "System",
+    links: [{ to: "/dashboard/settings", label: "Settings", icon: Settings }],
+  },
+] as const;
+
+const PAGE_TITLES: Record<string, string> = {
+  "/dashboard": "Overview",
+  "/dashboard/analytics": "Analytics",
+  "/dashboard/students": "Students",
+  "/dashboard/sheet": "Spreadsheet Data",
+  "/dashboard/settings": "Settings",
+};
+
 export function DashboardLayout({ children }: { children: ReactNode }) {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const [navOpen, setNavOpen] = useState(false);
+
+  // The drawer is only a mobile concern — close it whenever the route changes.
+  useEffect(() => {
+    setNavOpen(false);
+  }, [pathname]);
+
+  // Prevent the page behind the drawer from scrolling while it is open.
+  useEffect(() => {
+    if (!navOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [navOpen]);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setNavOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [navOpen]);
+
+  const title = PAGE_TITLES[pathname] ?? "Dashboard";
+
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-card/50 backdrop-blur-xl">
-        <div className="flex h-16 items-center px-6 border-b border-border">
+    <div className="flex min-h-dvh bg-background">
+      {/* Backdrop — mobile only, sits under the drawer */}
+      <div
+        onClick={() => setNavOpen(false)}
+        aria-hidden={!navOpen}
+        className={`fixed inset-0 z-40 bg-foreground/40 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${
+          navOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      />
+
+      {/* Sidebar — off-canvas below lg, always visible from lg up */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 max-w-[85vw] flex-col border-r border-border bg-card backdrop-blur-xl transition-transform duration-300 ease-out lg:translate-x-0 lg:bg-card/50 ${
+          navOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border px-4 sm:px-6">
           <Link
             to="/"
-            className="flex items-center gap-2 font-display text-xl font-bold tracking-tight text-foreground"
+            className="flex items-center gap-2 font-display text-lg font-bold tracking-tight text-foreground sm:text-xl"
           >
-            <span className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Activity className="h-5 w-5" />
             </span>
             TransforHub
           </Link>
+          <button
+            type="button"
+            onClick={() => setNavOpen(false)}
+            aria-label="Close navigation"
+            className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:hidden"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
-        <div className="px-4 py-6 space-y-1">
-          <h4 className="px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-            Main Menu
-          </h4>
-          <Link
-            to="/dashboard"
-            activeProps={{ className: "bg-primary/10 text-primary" }}
-            inactiveProps={{
-              className: "text-muted-foreground hover:bg-accent hover:text-foreground",
-            }}
-            activeOptions={{ exact: true }}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
-          >
-            <LayoutDashboard className="h-4 w-4" />
-            Overview
-          </Link>
-          <Link
-            to="/dashboard/analytics"
-            activeProps={{ className: "bg-primary/10 text-primary" }}
-            inactiveProps={{
-              className: "text-muted-foreground hover:bg-accent hover:text-foreground",
-            }}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
-          >
-            <BarChart3 className="h-4 w-4" />
-            Analytics
-          </Link>
-          <Link
-            to="/dashboard/students"
-            activeProps={{ className: "bg-primary/10 text-primary" }}
-            inactiveProps={{
-              className: "text-muted-foreground hover:bg-accent hover:text-foreground",
-            }}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
-          >
-            <Users className="h-4 w-4" />
-            Students
-          </Link>
-          <Link
-            to="/dashboard/sheet"
-            activeProps={{ className: "bg-primary/10 text-primary" }}
-            inactiveProps={{
-              className: "text-muted-foreground hover:bg-accent hover:text-foreground",
-            }}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
-          >
-            <Table2 className="h-4 w-4" />
-            Sheet
-          </Link>
+        <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-6">
+          {NAV_SECTIONS.map((section, sectionIndex) => (
+            <div key={section.heading} className={sectionIndex > 0 ? "pt-8" : undefined}>
+              <h4 className="mb-4 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {section.heading}
+              </h4>
+              <div className="space-y-1">
+                {section.links.map((link) => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    activeProps={{ className: "bg-primary/10 text-primary" }}
+                    inactiveProps={{
+                      className: "text-muted-foreground hover:bg-accent hover:text-foreground",
+                    }}
+                    {...("exact" in link ? { activeOptions: { exact: link.exact } } : {})}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                  >
+                    <link.icon className="h-4 w-4 shrink-0" />
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </nav>
 
-          <h4 className="px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-8 mb-4">
-            System
-          </h4>
-          <Link
-            to="/dashboard/settings"
-            activeProps={{ className: "bg-primary/10 text-primary" }}
-            inactiveProps={{
-              className: "text-muted-foreground hover:bg-accent hover:text-foreground",
-            }}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
-          >
-            <Settings className="h-4 w-4" />
-            Settings
-          </Link>
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
+        <div className="shrink-0 border-t border-border p-4">
           <Link
             to="/"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-destructive transition-colors"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-destructive"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-4 w-4 shrink-0" />
             Back to Home
           </Link>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="ml-64 flex h-screen flex-1 flex-col min-w-0 overflow-hidden">
+      <main className="flex h-dvh min-w-0 flex-1 flex-col overflow-hidden lg:ml-64">
         {/* Header */}
-        <header className="z-40 flex h-16 shrink-0 items-center justify-between border-b border-border bg-background/80 px-8 backdrop-blur-md">
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">
-            Dashboard Overview
-          </h1>
-          <div className="flex items-center gap-4">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-primary to-primary-foreground shadow-inner flex items-center justify-center text-white text-xs font-bold">
+        <header className="z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setNavOpen(true)}
+              aria-label="Open navigation"
+              className="-ml-2 rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <h1 className="truncate text-base font-semibold tracking-tight text-foreground sm:text-lg lg:text-xl">
+              {title}
+            </h1>
+          </div>
+          <div className="flex shrink-0 items-center gap-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-primary to-primary-foreground text-xs font-bold text-white shadow-inner">
               TH
             </div>
           </div>

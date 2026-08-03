@@ -19,7 +19,7 @@ export function Panel({
   return (
     <div
       className={cn(
-        "flex h-full flex-col rounded-xl border border-border bg-card/50 p-6 shadow-sm backdrop-blur-sm",
+        "flex h-full flex-col rounded-xl border border-border bg-card/50 p-4 shadow-sm backdrop-blur-sm sm:p-6",
         className,
       )}
     >
@@ -49,7 +49,7 @@ export function StatCard({
   isLoading?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card/50 p-6 shadow-sm backdrop-blur-sm transition-all hover:border-primary/20 hover:shadow-md">
+    <div className="rounded-xl border border-border bg-card/50 p-4 shadow-sm backdrop-blur-sm transition-all hover:border-primary/20 hover:shadow-md sm:p-6">
       <div className="flex flex-row items-center justify-between pb-2">
         <h3 className="text-sm font-medium tracking-tight text-muted-foreground">{title}</h3>
         {icon}
@@ -73,7 +73,7 @@ export function StatCard({
 
 export function PanelEmpty({ message }: { message: string }) {
   return (
-    <div className="flex h-full min-h-[160px] items-center justify-center text-sm text-muted-foreground">
+    <div className="flex h-full min-h-40 items-center justify-center text-center text-sm text-muted-foreground">
       {message}
     </div>
   );
@@ -81,7 +81,7 @@ export function PanelEmpty({ message }: { message: string }) {
 
 export function DataError({ message }: { message: string }) {
   return (
-    <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6 text-destructive">
+    <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-destructive sm:p-6">
       <p className="font-medium">Could not load spreadsheet data</p>
       <p className="mt-1 text-sm opacity-80">{message}</p>
     </div>
