@@ -33,6 +33,18 @@ function Index() {
       <AnnouncementBar />
 
       <section className="relative px-4 pt-14 pb-20 sm:pt-20">
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-8 z-50">
+          <a
+            href="/dashboard"
+            className="cta-surface group relative flex items-center justify-center overflow-hidden rounded-full px-5 py-2.5 text-sm font-semibold text-coral-foreground transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 shadow-lg"
+          >
+            <span
+              aria-hidden="true"
+              className="cta-sheen pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+            />
+            <span className="relative">Dashboard →</span>
+          </a>
+        </div>
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[620px]"
