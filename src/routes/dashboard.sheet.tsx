@@ -12,19 +12,23 @@ export const Route = createFileRoute("/dashboard/sheet")({
 });
 
 function SheetPage() {
-  const { data, isLoading, error } = useSpreadsheetData();
+  const { data, isPending: isLoading, error } = useSpreadsheetData();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const columns = data && data.length > 0 ? Object.keys(data[0]) : [];
-  
-  const filteredData = data?.filter((row) => {
-    if (!searchTerm) return true;
-    return columns.some((col) => 
-      String(row[col as keyof typeof row]).toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }) || [];
+  const firstRow = data?.[0];
+  const columns = firstRow ? Object.keys(firstRow) : [];
+
+  const filteredData =
+    data?.filter((row) => {
+      if (!searchTerm) return true;
+      return columns.some((col) =>
+        String(row[col as keyof typeof row])
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()),
+      );
+    }) || [];
 
   // Pagination logic
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -38,18 +42,18 @@ function SheetPage() {
   };
 
   return (
-    <div className="flex flex-col flex-1 w-full overflow-hidden bg-background">
+    <div className="flex w-full flex-1 flex-col p-6 sm:p-8">
       {/* Header Area */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-6 py-4 border-b border-border gap-4 shrink-0">
-        <div className="space-y-1">
+      <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div className="space-y-2">
           <Reveal delay={0}>
-            <h2 className="text-xl font-display font-bold tracking-tight text-foreground flex items-center gap-3">
-              <Table2 className="h-6 w-6 text-primary" />
+            <h2 className="text-3xl font-display font-bold tracking-tight text-foreground flex items-center gap-3">
+              <Table2 className="h-8 w-8 text-primary" />
               Spreadsheet Data
             </h2>
           </Reveal>
           <Reveal delay={100}>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground">
               View all captured lead information exactly as it appears in your Google Sheet.
             </p>
           </Reveal>
@@ -66,7 +70,7 @@ function SheetPage() {
       </div>
 
       {/* Table Area */}
-      <div className="flex-1 overflow-hidden bg-card flex flex-col relative w-full">
+      <div className="relative flex w-full min-h-100 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card/50 shadow-sm backdrop-blur-sm">
         {isLoading ? (
           <div className="flex-1 flex flex-col items-center justify-center p-12 text-muted-foreground">
             <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mb-4"></div>
@@ -91,7 +95,7 @@ function SheetPage() {
                       #
                     </th>
                     {columns.map((column, index) => (
-                      <th key={index} className="px-6 py-4 font-semibold">
+                      <th key={index} className="px-6 py-5 sm:py-6 font-semibold">
                         {column}
                       </th>
                     ))}
@@ -102,12 +106,18 @@ function SheetPage() {
                     const absoluteIndex = startIndex + index + 1;
                     return (
                       <tr key={absoluteIndex} className="hover:bg-accent/50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap text-muted-foreground sticky left-0 z-10 bg-card/90 backdrop-blur shadow-[1px_0_0_0_rgba(0,0,0,0.05)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.05)] font-medium">
+                        <td className="px-6 py-5 sm:py-6 whitespace-nowrap text-muted-foreground sticky left-0 z-10 bg-card/90 backdrop-blur shadow-[1px_0_0_0_rgba(0,0,0,0.05)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.05)] font-medium">
                           {absoluteIndex}
                         </td>
                         {columns.map((column, colIndex) => (
-                          <td key={colIndex} className="px-6 py-4 whitespace-nowrap text-foreground/90 max-w-[400px] truncate" title={String(row[column as keyof typeof row])}>
-                            {row[column as keyof typeof row] || <span className="text-muted-foreground/30">-</span>}
+                          <td
+                            key={colIndex}
+                            className="px-6 py-5 sm:py-6 whitespace-nowrap text-foreground/90 max-w-[400px] truncate"
+                            title={String(row[column as keyof typeof row])}
+                          >
+                            {row[column as keyof typeof row] || (
+                              <span className="text-muted-foreground/30">-</span>
+                            )}
                           </td>
                         ))}
                       </tr>
@@ -115,7 +125,10 @@ function SheetPage() {
                   })}
                   {paginatedData.length === 0 && (
                     <tr>
-                      <td colSpan={columns.length + 1} className="px-6 py-12 text-center text-muted-foreground h-full">
+                      <td
+                        colSpan={columns.length + 1}
+                        className="px-6 py-12 text-center text-muted-foreground h-full"
+                      >
                         No matching records found for "{searchTerm}"
                       </td>
                     </tr>
@@ -123,22 +136,31 @@ function SheetPage() {
                 </tbody>
               </table>
             </div>
-            
+
             {/* Pagination Controls */}
             <div className="p-3 border-t border-border bg-muted/30 flex flex-wrap justify-between items-center gap-4 shrink-0">
               <div className="text-xs text-muted-foreground whitespace-nowrap flex-1">
-                Showing <span className="font-medium text-foreground">{filteredData.length > 0 ? startIndex + 1 : 0}</span> to <span className="font-medium text-foreground">{Math.min(startIndex + itemsPerPage, filteredData.length)}</span> of <span className="font-medium text-foreground">{filteredData.length}</span> records
+                Showing{" "}
+                <span className="font-medium text-foreground">
+                  {filteredData.length > 0 ? startIndex + 1 : 0}
+                </span>{" "}
+                to{" "}
+                <span className="font-medium text-foreground">
+                  {Math.min(startIndex + itemsPerPage, filteredData.length)}
+                </span>{" "}
+                of <span className="font-medium text-foreground">{filteredData.length}</span>{" "}
+                records
               </div>
-              
+
               <div className="flex items-center justify-center gap-2 flex-1">
                 <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1 || totalPages === 0}
                   className="p-1.5 rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-muted-foreground hover:text-foreground border border-transparent hover:border-border"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                
+
                 <div className="flex items-center gap-1 text-sm font-medium">
                   <span className="min-w-[2rem] text-center bg-primary text-primary-foreground py-0.5 rounded shadow-sm text-xs">
                     {currentPage}
@@ -148,20 +170,20 @@ function SheetPage() {
                     {totalPages > 0 ? totalPages : 1}
                   </span>
                 </div>
-                
+
                 <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages || totalPages === 0}
                   className="p-1.5 rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-muted-foreground hover:text-foreground border border-transparent hover:border-border"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
-              
+
               <div className="flex-1 flex justify-end">
-                <a 
-                  href={import.meta.env.VITE_SPREADSHEET_DATA} 
-                  target="_blank" 
+                <a
+                  href={import.meta.env["VITE_SPREADSHEET_DATA"]}
+                  target="_blank"
                   rel="noreferrer"
                   className="text-xs flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
                 >

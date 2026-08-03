@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Reveal } from "@/components/landing/Reveal";
-import { Users, Search, MoreHorizontal } from "lucide-react";
+import { Users, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { useSpreadsheetData } from "@/hooks/useSpreadsheetData";
+import { formatCurrency, isoDate, parseAmount } from "@/lib/dashboard-metrics";
+import { useState } from "react";
 
 export const Route = createFileRoute("/dashboard/students")({
   component: StudentsPage,
@@ -9,19 +12,62 @@ export const Route = createFileRoute("/dashboard/students")({
   }),
 });
 
+const GRADE_STYLES: Record<string, string> = {
+  A: "bg-emerald-500/10 text-emerald-600",
+  B: "bg-primary/10 text-primary",
+  C: "bg-amber-500/10 text-amber-600",
+  D: "bg-muted text-muted-foreground",
+};
+
 function StudentsPage() {
-  const students = [
-    { id: "STU-1029", name: "Ahmed Khan", email: "ahmed.k@example.com", date: "Aug 02, 2026", status: "Active", progress: "85%" },
-    { id: "STU-1028", name: "Sara Jenkins", email: "sara.j@example.com", date: "Aug 01, 2026", status: "Active", progress: "42%" },
-    { id: "STU-1027", name: "Omar Farooq", email: "omar.f@example.com", date: "Jul 30, 2026", status: "Completed", progress: "100%" },
-    { id: "STU-1026", name: "David Chen", email: "david.c@example.com", date: "Jul 28, 2026", status: "Active", progress: "15%" },
-    { id: "STU-1025", name: "Zainab Ali", email: "zainab.a@example.com", date: "Jul 25, 2026", status: "Inactive", progress: "5%" },
-    { id: "STU-1024", name: "Michael Ross", email: "m.ross@example.com", date: "Jul 20, 2026", status: "Active", progress: "60%" },
-  ];
+  const { data, isPending: isLoading, error } = useSpreadsheetData();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Every column below comes straight from the sheet — nothing is synthesised.
+  const students = (data ?? []).map((row) => {
+    const score = parseFloat((row["Lead Score"] ?? "").trim());
+    const cash = parseAmount(row["Cash_Collected_USD"]);
+
+    return {
+      name: row["Lead Name"]?.trim() || "Unnamed lead",
+      email: row["Email"]?.trim() || "—",
+      phone: row["Phone Number"]?.trim() || "",
+      captured: isoDate(row["Date Captured"]) ?? "—",
+      grade: (row["Lead Grade"] ?? "").trim().toUpperCase(),
+      score: Number.isFinite(score) ? score : null,
+      bookedCall: (row["Close_Booked_Call"] ?? "").trim().toLowerCase() === "yes",
+      closed: (row["Close_Closed"] ?? "").trim().toLowerCase() === "yes",
+      stage: (row["Close_Opportunity_Stage"] ?? "").trim(),
+      status: (row["Close_Lead_Status"] ?? "").trim(),
+      cash,
+    };
+  });
+
+  const query = searchTerm.trim().toLowerCase();
+  const filteredStudents = query
+    ? students.filter(
+        (student) =>
+          student.name.toLowerCase().includes(query) ||
+          student.email.toLowerCase().includes(query) ||
+          student.phone.toLowerCase().includes(query),
+      )
+    : students;
+
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedStudents = filteredStudents.slice(startIndex, startIndex + itemsPerPage);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
 
   return (
-    <>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div className="flex w-full flex-1 flex-col p-6 sm:p-8">
+      {/* Header Area */}
+      <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div className="space-y-2">
           <Reveal delay={0}>
             <h2 className="text-3xl font-display font-bold tracking-tight text-foreground flex items-center gap-3">
@@ -36,76 +82,200 @@ function StudentsPage() {
           </Reveal>
         </div>
         <Reveal delay={200}>
-          <div className="relative">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input 
-              type="text" 
-              placeholder="Search students..." 
-              className="pl-9 pr-4 py-2 w-full sm:w-64 rounded-lg border border-border bg-card/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+            <input
+              type="text"
+              placeholder="Search name, email, phone..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="pl-9 pr-4 py-2 w-full rounded-md border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm"
             />
           </div>
         </Reveal>
       </div>
 
-      <Reveal delay={300}>
-        <div className="rounded-xl border border-border bg-card/50 shadow-sm backdrop-blur-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-accent/30 text-muted-foreground uppercase text-xs font-semibold">
-                <tr>
-                  <th className="px-6 py-4">Student</th>
-                  <th className="px-6 py-4">ID</th>
-                  <th className="px-6 py-4">Enrolled</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Progress</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/50">
-                {students.map((student, i) => (
-                  <tr key={student.id} className="hover:bg-accent/10 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                          {student.name.split(' ').map(n => n[0]).join('')}
-                        </div>
-                        <div>
-                          <div className="font-medium text-foreground">{student.name}</div>
-                          <div className="text-muted-foreground text-xs">{student.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-xs text-muted-foreground">{student.id}</td>
-                    <td className="px-6 py-4 text-muted-foreground">{student.date}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                        student.status === 'Active' ? 'bg-green-500/10 text-green-500' :
-                        student.status === 'Completed' ? 'bg-primary/10 text-primary' :
-                        'bg-destructive/10 text-destructive'
-                      }`}>
-                        {student.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-full h-1.5 bg-border rounded-full overflow-hidden w-20">
-                          <div className="h-full bg-primary rounded-full" style={{ width: student.progress }}></div>
-                        </div>
-                        <span className="text-xs font-medium text-muted-foreground">{student.progress}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-muted-foreground hover:text-foreground transition-colors">
-                        <MoreHorizontal className="h-5 w-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Table Area */}
+      <div className="relative flex w-full min-h-100 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card/50 shadow-sm backdrop-blur-sm">
+        {isLoading ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-12 text-muted-foreground">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mb-4"></div>
+            Loading student data...
           </div>
-        </div>
-      </Reveal>
-    </>
+        ) : error ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-destructive bg-destructive/5">
+            <p className="font-medium text-lg">Error loading data</p>
+            <p className="text-sm opacity-80 mt-2">{(error as Error).message}</p>
+          </div>
+        ) : students.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center p-12 text-muted-foreground">
+            No students found.
+          </div>
+        ) : (
+          <>
+            <div className="flex-1 overflow-auto w-full">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead className="text-xs font-semibold text-muted-foreground uppercase bg-muted/80 whitespace-nowrap sticky top-0 z-30 shadow-sm backdrop-blur-sm">
+                  <tr>
+                    <th className="px-6 py-4">Student</th>
+                    <th className="px-6 py-4">Captured</th>
+                    <th className="px-6 py-4">Grade</th>
+                    <th className="px-6 py-4">Lead Score</th>
+                    <th className="px-6 py-4">CRM Stage</th>
+                    <th className="px-6 py-4 text-right">Cash Collected</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {paginatedStudents.map((student, i) => (
+                    <tr
+                      key={`${student.email}-${startIndex + i}`}
+                      className="hover:bg-accent/50 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                            {student.name
+                              .split(" ")
+                              .map((part) => part[0])
+                              .join("")
+                              .substring(0, 2)
+                              .toUpperCase() || "?"}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-medium text-foreground truncate">
+                              {student.name}
+                            </div>
+                            <div className="text-muted-foreground text-xs truncate">
+                              {student.email}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
+                        {student.captured}
+                      </td>
+                      <td className="px-6 py-4">
+                        {student.grade ? (
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                              GRADE_STYLES[student.grade] ?? "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            {student.grade}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground/40">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {student.score === null ? (
+                          <span className="text-muted-foreground/40">Not scored</span>
+                        ) : (
+                          <div className="flex items-center gap-3">
+                            <div className="w-24 h-2 bg-border rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-primary"
+                                style={{
+                                  width: `${Math.min(100, Math.max(0, student.score * 10))}%`,
+                                }}
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-muted-foreground min-w-10">
+                              {student.score.toFixed(2)}
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {student.closed ? (
+                          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600">
+                            Closed
+                          </span>
+                        ) : student.bookedCall ? (
+                          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                            Call booked
+                          </span>
+                        ) : student.stage || student.status ? (
+                          <span
+                            className="text-xs text-muted-foreground truncate block max-w-45"
+                            title={student.stage || student.status}
+                          >
+                            {student.stage || student.status}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50">Not in CRM</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                        {student.cash > 0 ? (
+                          <span className="font-medium text-emerald-600">
+                            {formatCurrency(student.cash, 2)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground/40">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {paginatedStudents.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                        No students found matching "{searchTerm}"
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="p-3 border-t border-border bg-muted/30 flex flex-wrap justify-between items-center gap-4 shrink-0">
+              <div className="text-xs text-muted-foreground whitespace-nowrap flex-1">
+                Showing{" "}
+                <span className="font-medium text-foreground">
+                  {filteredStudents.length > 0 ? startIndex + 1 : 0}
+                </span>{" "}
+                to{" "}
+                <span className="font-medium text-foreground">
+                  {Math.min(startIndex + itemsPerPage, filteredStudents.length)}
+                </span>{" "}
+                of <span className="font-medium text-foreground">{filteredStudents.length}</span>{" "}
+                students
+              </div>
+
+              <div className="flex items-center justify-center gap-2 flex-1">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1 || totalPages === 0}
+                  className="p-1.5 rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-muted-foreground hover:text-foreground border border-transparent hover:border-border"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+
+                <div className="flex items-center gap-1 text-sm font-medium">
+                  <span className="min-w-8 text-center bg-primary text-primary-foreground py-0.5 rounded shadow-sm text-xs">
+                    {currentPage}
+                  </span>
+                  <span className="text-muted-foreground px-1 text-xs">of</span>
+                  <span className="text-muted-foreground font-semibold text-xs">
+                    {totalPages > 0 ? totalPages : 1}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className="p-1.5 rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-muted-foreground hover:text-foreground border border-transparent hover:border-border"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="flex-1 flex justify-end" />
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 }

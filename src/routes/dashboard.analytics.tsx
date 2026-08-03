@@ -1,6 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Reveal } from "@/components/landing/Reveal";
-import { BarChart3, TrendingUp, DollarSign, Activity } from "lucide-react";
+import { BarChart3, TrendingUp, DollarSign, Target, Receipt } from "lucide-react";
+import { useDashboardMetrics } from "@/hooks/useDashboardMetrics";
+import { DataError, Panel, PanelEmpty, StatCard } from "@/components/dashboard/Panel";
+import { BreakdownList } from "@/components/dashboard/BreakdownList";
+import { PerformanceTable } from "@/components/dashboard/PerformanceTable";
+import { ChartTooltip, chartAxis, chartGrid } from "@/components/dashboard/chart-theme";
+import { formatCompactCurrency, formatCurrency, formatPercent } from "@/lib/dashboard-metrics";
 
 export const Route = createFileRoute("/dashboard/analytics")({
   component: AnalyticsPage,
@@ -10,8 +17,39 @@ export const Route = createFileRoute("/dashboard/analytics")({
 });
 
 function AnalyticsPage() {
+  const { metrics, isLoading, error } = useDashboardMetrics();
+
+  const cards = [
+    {
+      title: "Cash Collected",
+      value: formatCurrency(metrics.totalRevenue, 2),
+      hint: `Across ${metrics.payingCustomers.toLocaleString()} payments`,
+      icon: <DollarSign className="h-4 w-4 text-muted-foreground" />,
+    },
+    {
+      title: "Average Deal Size",
+      value: formatCurrency(metrics.avgDealSize, 2),
+      hint: `${formatCurrency(metrics.revenuePerLead, 2)} revenue per lead`,
+      icon: <Receipt className="h-4 w-4 text-muted-foreground" />,
+    },
+    {
+      title: "Booking Rate",
+      value: formatPercent(metrics.bookingRate),
+      hint: `${metrics.bookedCalls.toLocaleString()} of ${metrics.totalLeads.toLocaleString()} leads booked a call`,
+      icon: <Target className="h-4 w-4 text-muted-foreground" />,
+    },
+    {
+      title: "Close Rate",
+      value: formatPercent(metrics.closeRate),
+      hint: `${metrics.closedDeals.toLocaleString()} deals closed from booked calls`,
+      icon: <TrendingUp className="h-4 w-4 text-muted-foreground" />,
+    },
+  ];
+
+  const totalGraded = metrics.gradeDistribution.reduce((acc, g) => acc + g.value, 0);
+
   return (
-    <>
+    <div className="flex w-full flex-1 flex-col p-6 sm:p-8">
       <div className="space-y-2 mb-8">
         <Reveal delay={0}>
           <h2 className="text-3xl font-display font-bold tracking-tight text-foreground flex items-center gap-3">
@@ -26,66 +64,231 @@ function AnalyticsPage() {
         </Reveal>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3 mb-8">
-        {[
-          { title: "Monthly Recurring Revenue", value: "$45,231.89", icon: <DollarSign className="h-5 w-5" /> },
-          { title: "Growth Rate", value: "+24.5%", icon: <TrendingUp className="h-5 w-5" /> },
-          { title: "Active Engagement", value: "87.3%", icon: <Activity className="h-5 w-5" /> },
-        ].map((stat, i) => (
-          <Reveal key={i} delay={150 + i * 50}>
-            <div className="rounded-xl border border-border bg-card/50 p-6 shadow-sm backdrop-blur-sm">
-              <div className="flex items-center justify-between mb-4 text-muted-foreground">
-                <span className="text-sm font-medium">{stat.title}</span>
-                {stat.icon}
-              </div>
-              <div className="text-3xl font-bold font-display text-foreground">{stat.value}</div>
-            </div>
-          </Reveal>
-        ))}
-      </div>
+      {error ? (
+        <DataError message={(error as Error).message} />
+      ) : (
+        <>
+          <div className="mb-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {cards.map((card, i) => (
+              <Reveal key={card.title} delay={200 + i * 100}>
+                <StatCard {...card} isLoading={isLoading} />
+              </Reveal>
+            ))}
+          </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Reveal delay={300}>
-          <div className="rounded-xl border border-border bg-card/50 p-6 shadow-sm backdrop-blur-sm h-[400px] flex flex-col">
-            <h3 className="text-lg font-medium text-foreground tracking-tight mb-6">Revenue Over Time</h3>
-            <div className="flex-1 flex items-end justify-between gap-2 px-4 pb-4">
-              {[40, 60, 45, 80, 55, 90, 75].map((height, i) => (
-                <div key={i} className="w-full bg-primary/20 rounded-t-sm hover:bg-primary/40 transition-colors relative group" style={{ height: `${height}%` }}>
-                  <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-xs py-1 px-2 rounded transition-opacity shadow-md">
-                    ${(height * 450).toFixed(0)}
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Reveal delay={500} className="lg:col-span-2">
+              <Panel
+                title="Revenue Over Time"
+                description="Cash collected per month, dated by deal creation in Close"
+              >
+                {isLoading ? (
+                  <div className="h-[300px] w-full animate-pulse rounded-lg bg-muted/60" />
+                ) : metrics.revenueByMonth.length === 0 ? (
+                  <PanelEmpty message="No cash collected recorded in the sheet." />
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      data={metrics.revenueByMonth}
+                      margin={{ top: 8, right: 8, left: -8, bottom: 0 }}
+                    >
+                      <CartesianGrid {...chartGrid} />
+                      <XAxis dataKey="label" {...chartAxis} interval="preserveStartEnd" />
+                      <YAxis
+                        {...chartAxis}
+                        width={52}
+                        tickFormatter={(value: number) => formatCompactCurrency(value)}
+                      />
+                      <Tooltip
+                        cursor={{ fill: "var(--accent)", opacity: 0.4 }}
+                        content={
+                          <ChartTooltip
+                            valueFormatter={(value: number) => formatCurrency(value, 2)}
+                          />
+                        }
+                      />
+                      <Bar
+                        dataKey="revenue"
+                        name="Cash collected"
+                        fill="var(--primary)"
+                        radius={[4, 4, 0, 0]}
+                        maxBarSize={48}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </Panel>
+            </Reveal>
+
+            <Reveal delay={600}>
+              <Panel title="Program Mix" description="Revenue split by program purchased">
+                {isLoading ? (
+                  <div className="h-[300px] w-full animate-pulse rounded-lg bg-muted/60" />
+                ) : metrics.programTypes.length === 0 ? (
+                  <PanelEmpty message="No program types recorded." />
+                ) : (
+                  <div className="space-y-5">
+                    {metrics.programTypes.map((program) => {
+                      const share =
+                        metrics.totalRevenue > 0
+                          ? (program.revenue / metrics.totalRevenue) * 100
+                          : 0;
+                      return (
+                        <div key={program.name} className="space-y-2">
+                          <div className="flex items-baseline justify-between gap-3">
+                            <span className="text-sm font-medium text-foreground">
+                              {program.name}
+                            </span>
+                            <span className="font-display text-sm font-bold text-foreground">
+                              {formatCurrency(program.revenue)}
+                            </span>
+                          </div>
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                            <div
+                              className="h-full rounded-full bg-primary"
+                              style={{ width: `${Math.max(share, 1)}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {program.deals} {program.deals === 1 ? "sale" : "sales"} ·{" "}
+                            {share.toFixed(1)}% of revenue
+                          </p>
+                        </div>
+                      );
+                    })}
+
+                    {metrics.paymentTypes.length > 0 && (
+                      <div className="border-t border-border pt-4">
+                        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          Payment types
+                        </p>
+                        <div className="space-y-2">
+                          {metrics.paymentTypes.map((payment) => (
+                            <div key={payment.name} className="flex justify-between gap-3 text-sm">
+                              <span className="truncate text-muted-foreground">{payment.name}</span>
+                              <span className="font-medium text-foreground">{payment.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Panel>
+            </Reveal>
+          </div>
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-3">
+            <Reveal delay={700}>
+              <Panel title="Traffic Sources" description="Where every lead came from (UTM source)">
+                {isLoading ? (
+                  <div className="h-[200px] w-full animate-pulse rounded-lg bg-muted/60" />
+                ) : (
+                  <BreakdownList items={metrics.trafficSources} total={metrics.totalLeads} />
+                )}
+              </Panel>
+            </Reveal>
+
+            <Reveal delay={800}>
+              <Panel title="Top Ad Placements" description="Leads by UTM medium">
+                {isLoading ? (
+                  <div className="h-[200px] w-full animate-pulse rounded-lg bg-muted/60" />
+                ) : (
+                  <BreakdownList
+                    items={metrics.placements}
+                    emptyMessage="No placement data in the sheet."
+                  />
+                )}
+              </Panel>
+            </Reveal>
+
+            <Reveal delay={900}>
+              <Panel title="Pipeline Stages" description="Opportunity stages in Close CRM">
+                {isLoading ? (
+                  <div className="h-[200px] w-full animate-pulse rounded-lg bg-muted/60" />
+                ) : (
+                  <BreakdownList
+                    items={metrics.pipelineStages}
+                    emptyMessage="No opportunities in the CRM yet."
+                  />
+                )}
+              </Panel>
+            </Reveal>
+          </div>
+
+          <Reveal delay={1000} className="mt-6">
+            <Panel
+              title="Lead Grade Distribution"
+              description={
+                isLoading
+                  ? "Loading lead scores…"
+                  : metrics.avgLeadScore === null
+                    ? "No scored leads in the sheet"
+                    : `Average lead score ${metrics.avgLeadScore.toFixed(2)} across ${metrics.scoredLeads.toLocaleString()} scored leads`
+              }
+            >
+              {isLoading ? (
+                <div className="h-[120px] w-full animate-pulse rounded-lg bg-muted/60" />
+              ) : metrics.gradeDistribution.length === 0 ? (
+                <PanelEmpty message="No graded leads in the sheet." />
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {metrics.gradeDistribution.map((grade) => {
+                    const share = totalGraded > 0 ? (grade.value / totalGraded) * 100 : 0;
+                    return (
+                      <div
+                        key={grade.name}
+                        className="rounded-lg border border-border bg-background/40 p-4"
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          Grade {grade.name}
+                        </p>
+                        <p className="mt-1 font-display text-2xl font-bold text-foreground">
+                          {grade.value.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {share.toFixed(1)}% of graded leads
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Panel>
+          </Reveal>
+
+          {/* Stretches to the bottom of the viewport so the page never ends short */}
+          <Reveal delay={1100} className="mt-6 flex flex-1 flex-col">
+            <Panel
+              title="Channel Performance"
+              description="Every acquisition channel from first touch to cash collected"
+              className="flex-1"
+            >
+              {isLoading ? (
+                <div className="h-50 w-full animate-pulse rounded-lg bg-muted/60" />
+              ) : (
+                <div className="space-y-8">
+                  <PerformanceTable
+                    rows={metrics.sourcePerformance}
+                    label="Traffic source"
+                    emptyMessage="No UTM sources in the sheet."
+                  />
+                  <div>
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Top campaigns by cash collected
+                    </p>
+                    <PerformanceTable
+                      rows={metrics.campaignPerformance}
+                      label="Campaign"
+                      emptyMessage="No UTM campaigns in the sheet."
+                    />
                   </div>
                 </div>
-              ))}
-            </div>
-            <div className="flex justify-between text-xs text-muted-foreground px-4">
-              <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-            </div>
-          </div>
-        </Reveal>
-        <Reveal delay={400}>
-          <div className="rounded-xl border border-border bg-card/50 p-6 shadow-sm backdrop-blur-sm h-[400px] flex flex-col">
-            <h3 className="text-lg font-medium text-foreground tracking-tight mb-6">Traffic Sources</h3>
-            <div className="space-y-6">
-              {[
-                { source: "Direct Traffic", value: "45%", color: "bg-primary" },
-                { source: "Social Media (Instagram)", value: "30%", color: "bg-coral" },
-                { source: "Organic Search", value: "15%", color: "bg-primary/50" },
-                { source: "Referrals", value: "10%", color: "bg-border" },
-              ].map((item, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium text-foreground">{item.source}</span>
-                    <span className="text-muted-foreground">{item.value}</span>
-                  </div>
-                  <div className="h-2 w-full bg-accent rounded-full overflow-hidden">
-                    <div className={`h-full ${item.color} rounded-full`} style={{ width: item.value }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Reveal>
-      </div>
-    </>
+              )}
+            </Panel>
+          </Reveal>
+        </>
+      )}
+    </div>
   );
 }
